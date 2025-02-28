@@ -22,7 +22,7 @@ A seguir um detalhamento sobre a estrutura e funcionalidades dos arquivos do sis
 - **Extração do vocabulário e construção das features:**  
   A partir dos textos de treinamento, é construído um dicionário de palavras (_bag-of-words_), usando a função `bag_of_words` definida em *project1.py*. Em seguida, o script converte os textos dos três conjuntos em matrizes de _features_ utilizando `extract_bow_feature_vectors`.
 
-### 2. Experimentos com Dados "Toy"
+### 2. Experimentos com dados "Toy"
 
 - **Carregamento de um conjunto de dados simples (`toy_data.tsv`):**  
   O script carrega um conjunto de dados 2D simples para facilitar a visualização e compreensão dos algoritmos.
@@ -177,3 +177,72 @@ A estrutura modular facilita a compreensão dos passos e a manutenção futura, 
   A segunda parte do código (bag-of-words e extração de features) está orientada para o processamento de linguagem natural, convertendo textos em vetores de características que podem ser usados pelos algoritmos de classificação. Essa abordagem é típica em tarefas de análise de sentimentos, onde os textos (reviews) são transformados em representações numéricas.
 
 ---
+
+## **Estrutura e funcionalidades de `utils.py`**
+
+O arquivo **utils.py** contém um conjunto de funções auxiliares que suportam as operações de carregamento, processamento, visualização e ajuste (_tuning_) dos experimentos desenvolvidos no projeto. O código visa separar as rotinas genéricas e de apoio da lógica central dos algoritmos, promovendo modularidade e reuso do código.
+
+### 1. Importações e Configuração Inicial
+
+- **Importações:**  
+  São importadas bibliotecas essenciais como `csv` (para manipulação de arquivos CSV/TSV), `numpy` (para operações numéricas e vetorização), `matplotlib.pyplot` (para plotagem de gráficos) e o módulo `project1` (que contém os algoritmos de aprendizado). Também consta a verificação da versão do Python para compatibilidade com Python 3.
+
+- **Variável PYTHON3:**  
+  A variável `PYTHON3` é definida para determinar se o código está sendo executado em Python 3, o que influencia na forma de abrir arquivos (codificação, etc.).
+
+### 2. Funções de Carregamento de Dados
+
+- **`load_toy_data(path_toy_data):`**  
+  Carrega um conjunto de dados “_toy_” (simples) a partir de um arquivo TSV.  
+  - Usa a função `np.loadtxt` para ler o arquivo, desempacotando os dados em três vetores: um para os rótulos e dois para as coordenadas dos pontos.  
+  - As coordenadas são empilhadas verticalmente e transpostas para formar uma matriz onde cada linha é um exemplo em 2D.  
+  - Retorna uma tupla com a matriz de features e o vetor de rótulos.
+
+- **`load_data(path_data, extras=False):`**  
+  Lê dados de reviews a partir de um arquivo TSV e retorna uma lista de dicionários.  
+  - Cada dicionário representa um exemplo com, no mínimo, as chaves básicas `'sentiment'` e `'text'`.  
+  - Se o parâmetro `extras` for `True`, informações adicionais (como `productId`, `userId`, `summary`, `helpfulY` e `helpfulN`) também são mantidas.  
+  - Converte valores numéricos (definidos em `numeric_fields`) para inteiros quando apropriado.
+
+- **`write_predictions(path_submit_data, preds):`**  
+  Essa função é responsável por atualizar um arquivo de submissão com as predições.  
+  - Lê o arquivo original, verifica se o número de predições é compatível e substitui o valor do campo `'sentiment'` para cada exemplo.  
+  - Em seguida, regrava os dados no arquivo utilizando um `DictWriter`.
+
+### 3. Funções de Plotagem e Visualização
+
+- **`plot_toy_data(algo_name, features, labels, thetas):`**  
+  Plota o conjunto de dados 2D "toy" juntamente com a fronteira de decisão do classificador.  
+  - Os pontos são coloridos (por exemplo, azul para rótulo +1 e vermelho para -1).  
+  - A fronteira de decisão é calculada com base na equação $\theta[0] \cdot x + \theta[1] \cdot y + \theta_0 = 0$, resolvendo para $y$ e plotando uma linha.
+
+- **`plot_tune_results(algo_name, param_name, param_vals, acc_train, acc_val):`**  
+  Cria gráficos que ilustram a variação da acurácia de treinamento e validação em função de um hiperparâmetro (por exemplo, número de épocas ou valor de lambda).  
+  - Plota duas curvas (uma para os dados de treinamento e outra para validação) e adiciona legendas e títulos para facilitar a interpretação dos resultados.
+
+### 4. Funções para ajuste (_tuning_) de hiperparâmetros
+
+- **`tune(train_fn, param_vals, train_feats, train_labels, val_feats, val_labels):`**  
+  Essa função genérica executa uma varredura (_grid search_) sobre um conjunto de valores para um hiperparâmetro.  
+  - Para cada valor, treina o modelo (usando a função `train_fn`) e avalia a acurácia tanto no conjunto de treinamento quanto no de validação.  
+  - Retorna dois arrays com as acurácias correspondentes aos diferentes valores testados.
+
+- **`tune_perceptron, tune_avg_perceptron, tune_pegasos_T e tune_pegasos_L:`**  
+  São funções _wrapper_ que especializam a função genérica `tune` para os diferentes algoritmos (Perceptron, Perceptron Médio e Pegasos).  
+  - No caso do Pegasos, há uma diferenciação entre ajustar o número de iterações `T` (mantendo fixo lambda) e ajustar o valor de lambda (mantendo fixo `T`).
+
+### 5. Função para extração de palavras explanatórias
+
+- **most_explanatory_word(theta, wordlist):**  
+  Dada uma lista de pesos (best_theta) e uma lista ordenada de palavras (wordlist), essa função retorna as palavras ordenadas de acordo com a magnitude dos pesos (em ordem decrescente).  
+  - Essa função é útil para interpretar o modelo, identificando quais palavras têm maior influência nas decisões do classificador.
+
+Em linhas gerais, o módulo **utils.py** serve como um conjunto de ferramentas auxiliares que facilitam a:
+  
+- **Carga e processamento dos dados:** permite ler tanto conjuntos de dados reais quanto conjuntos de dados de teste (toy).  
+- **Visualização dos resultados:** Gera gráficos para visualizar a fronteira de decisão e a performance dos modelos em função dos hiperparâmetros.  
+- **Ajuste de hiperparâmetros:** Fornece funções para explorar diferentes configurações e identificar os melhores parâmetros para os algoritmos de aprendizado.  
+- **Interpretação dos modelos:** auxilia na identificação das _features_ mais influentes (neste caso, palavras) no modelo de análise de sentimentos.
+
+Em suma, esse arquivo é fundamental para manter o código principal (implementado em *project1.py* e *main.py*) organizado, modular e focado, isolando as tarefas de apoio e análise que permitem a fácil experimentação e visualização dos resultados.  
+
