@@ -1,4 +1,5 @@
 # Sentiment-Analysis
+
 Este projeto utiliza algoritmos de classificação (Perceptron, Average Perceptron e Pegasos) em machine learning para análise de sentimentos ou opiniões em avaliações de produtos e serviços.
 
 O arquivo `main.py` é o script principal que orquestra o fluxo de trabalho de `project1.py`, realizando a carga de dados, extração de _features_, treinamento, ajuste de hiperparâmetros, avaliação dos classificadores e visualização dos resultados. Em outras palavras, o script integra diversas etapas do _pipeline_ de um sistema de análise de sentimentos, ou seja, as funções definidas em `project1.py` e `utils.py` para executar experimentos de análise de sentimentos usando representações do tipo _bag-of-words_, conforme as seguintes etapas:
@@ -244,5 +245,89 @@ Em linhas gerais, o módulo **utils.py** serve como um conjunto de ferramentas a
 - **Ajuste de hiperparâmetros:** Fornece funções para explorar diferentes configurações e identificar os melhores parâmetros para os algoritmos de aprendizado.  
 - **Interpretação dos modelos:** auxilia na identificação das _features_ mais influentes (neste caso, palavras) no modelo de análise de sentimentos.
 
-Em suma, esse arquivo é fundamental para manter o código principal (implementado em *project1.py* e *main.py*) organizado, modular e focado, isolando as tarefas de apoio e análise que permitem a fácil experimentação e visualização dos resultados.  
+Em suma, **utils.py** é fundamental para manter o código principal (implementado em *project1.py* e *main.py*) organizado, modular e focado, isolando as tarefas de apoio e análise que permitem a fácil experimentação e visualização dos resultados. 
+
+---
+
+# **Estrutura e funcionalidades de `test.py`**
+
+O arquivo **test.py** é um conjunto de testes unitários projetados para verificar se as funções implementadas em `project1.py` estão funcionando corretamente. Em outras palavras, ele automatiza a validação dos algoritmos e funções essenciais do projeto, como o cálculo do _hinge loss_, atualizações do Perceptron, Pegasos, extração de features de bag-of-words, classificação e avaliação. A seguir, uma explicação mais detalhada:
+
+### 1. Importações e configurações iniciais
+
+- **Importações:**  
+  O script importa módulos essenciais como `os`, `sys`, `time` e `traceback` (para tratamento de erros), além de `numpy` e o módulo 'project1.py', onde estão implementadas as funções do projeto.
+
+- **Funções de formatação de texto (green, yellow, red):**  
+  São definidas funções simples para imprimir mensagens coloridas no terminal. Essas funções ajudam a destacar mensagens de sucesso (verde), aviso (amarelo) ou erro (vermelho).
+
+- **Funções de Log:**  
+  A função `log` imprime mensagens unindo os argumentos passados e `log_exit` exibe uma mensagem de erro (em vermelho) e termina a execução do script caso ocorra uma exceção.
+
+
+### 2. Funções Auxiliares para Verificação dos Resultados
+
+O arquivo define um conjunto de funções auxiliares para testar se as funções de *project1.py* retornam os resultados esperados:
+
+- **`check_real(ex_name, f, exp_res, *args):`**  
+  Essa função chama uma função `f` com os argumentos fornecidos e verifica se o resultado é um número real igual ao valor esperado (`exp_res`). Se a função lançar `NotImplementedError` ou retornar um valor diferente, a função exibe uma mensagem de erro.
+
+- **`equals(x, y):`**  
+  Uma função auxiliar que compara dois valores ou arrays. Se o valor esperado for um array do NumPy, utiliza o método `.all()` para verificar se todos os elementos são iguais.
+
+- **`check_tuple(ex_name, f, exp_res, *args, **kwargs):`**  
+  Testa se a função `f` retorna uma tupla do mesmo tamanho e com os elementos iguais aos valores esperados (`exp_res`). Caso contrário, exibe uma mensagem de erro.
+
+- **`check_array(ex_name, f, exp_res, *args):`**  
+  Verifica se a função retorna um array NumPy com a mesma forma e conteúdo que o array esperado (`exp_res`).
+
+- **`check_list(ex_name, f, exp_res, *args):`**  
+  Confirma se a função retorna uma lista com os mesmos elementos e tamanho que o esperado.
+
+Essas funções padronizam a forma como os testes são realizados e facilitam a interpretação dos resultados, imprimindo mensagens com cores para indicar se um teste passou ou falhou.
+
+### 3. Funções de Teste para Cada Funcionalidade
+
+O script define uma série de funções de teste específicas para cada função implementada em `project1.py`:
+
+- **`check_get_order():`**  
+  Testa a função `get_order` para verificar se ela retorna a ordem correta de índices para conjuntos de dados com 1 ou 2 amostras. Caso o resultado não seja o esperado, sugere reverter a implementação.
+
+- **`check_hinge_loss_single():` e `check_hinge_loss_full():`**  
+  Verificam, respectivamente, o cálculo do _hinge loss_ para um único exemplo e para um conjunto de exemplos, comparando o valor retornado com o resultado esperado (calculado manualmente).
+
+- **`check_perceptron_single_update():`**  
+  Testa a função que realiza uma atualização única do Perceptron. São verificados casos comuns e também casos de “fronteira” (_boundary case_) para garantir que a função atualize os parâmetros apenas quando necessário.
+
+- **`check_perceptron() e check_average_perceptron():`**  
+  Executam o algoritmo completo do Perceptron e do Perceptron Médio, respectivamente, utilizando conjuntos de dados pequenos (matrizes com poucos exemplos) e comparam os parâmetros finais (vetor de pesos e viés) com os valores esperados.
+
+- **`check_pegasos_single_update() e check_pegasos():`**  
+  Testam a atualização única e o algoritmo completo do Pegasos. Novamente, os testes utilizam exemplos simples para validar se as atualizações, que envolvem tanto a perda (quando a margem é insuficiente) quanto a regularização, são realizadas corretamente.
+
+- **`check_classify():`**  
+  Verifica a função de classificação que, a partir de uma matriz de _features_, vetor de pesos e viés, retorna as predições (1 ou -1). São testados casos padrão e de “fronteira”.
+
+- **`check_classifier_accuracy():`**  
+  Testa a função que treina um classificador (por exemplo, o Perceptron ou Pegasos) e calcula a acurácia tanto nos dados de treinamento quanto nos de validação. Usa conjuntos de dados simples para verificar se as acurácias são as esperadas.
+
+- **`check_bag_of_words():` e `check_extract_bow_feature_vectors():`**  
+  Esses testes verificam as funções responsáveis por construir o dicionário de _bag-of-words_ e por converter textos em matrizes de features. São verificadas a correta construção do dicionário (com os índices esperados) e a matriz de _features_, tanto no caso de indicadores binários quanto de contagens.
+
+Cada uma dessas funções chama as funções de `project1.py` com dados de teste pré-definidos e utiliza as funções auxiliares de verificação para comparar o resultado obtido com o esperado.
+
+
+### 4. Função Principal (main)
+
+- **`main():`**  
+  A função `main` orquestra a execução de todos os testes. Ela chama, em sequência, todas as funções de teste definidas anteriormente (por exemplo, `check_get_order()`, `check_hinge_loss_single()`, etc.). Caso alguma das funções lance uma exceção ou falhe na verificação, a execução é interrompida e uma mensagem de erro é exibida com detalhes (usando `traceback`).
+
+- Ao final do arquivo, a condicional `if __name__ == "__main__":` garante que, quando o script for executado diretamente, a função `main()` seja chamada e todos os testes sejam realizados.
+
+
+### Considerações finais
+
+O **test.py** serve como um framework de testes unitários para validar o correto funcionamento das implementações em `project1.py`. Utiliza funções auxiliares para padronizar as verificações, compara os resultados obtidos com os esperados e exibe mensagens coloridas para facilitar a identificação de problemas. Dessa forma, o script ajuda a garantir a integridade do código e facilita a depuração e manutenção, aspectos essenciais em um projeto de software de aprendizado de máquina.
+
+---
 
